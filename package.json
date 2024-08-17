@@ -1,0 +1,28 @@
+{
+  "name": "learning-two",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "lear-two"
+  },
+  "keywords": [
+    "bhaskar123@"
+  ],
+  "author": "bhaskarG",
+  "license": "ISC",
+  "dependencies": {
+    "cookie-parser": "^1.4.6",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "learning-two": "file:",
+    "mongoose": "^8.5.3"
+  }
+}
