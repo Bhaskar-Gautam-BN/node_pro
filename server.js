@@ -5,7 +5,7 @@ import {
   loginRouter,
   userRouter,
 } from "./src/routes/user.route.js";
-import { jwtVerifyToken } from "./src/middlewares/authJwt.js";
+// import { jwtVerifyToken } from "./src/middlewares/authJwt.js";
 import cookieParser from "cookie-parser";
 const port = process.env.PORT || 5000;
 const app = express();
@@ -18,7 +18,7 @@ app.use("/api/v1", homeRouter);
 app.use("/api/v1/login", loginRouter);
 
 app.get("/", (req, res) => {
-  res.send("asdfghj");
+  res.send("<h1>hello welcome to the new learning thing</h1>");
 });
 
 app.listen(port, () => {
