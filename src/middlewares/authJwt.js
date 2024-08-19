@@ -5,7 +5,7 @@ export const jwtVerifyToken = (req, resp, next) => {
   console.log(token);
   if (!token) return resp.status(401).send("Access denied. No token provided.");
   try {
-    const decoded = jwt.verify(token,"your-secret-key", {
+    const decoded = jwt.verify(token, "your-secret-key", {
       expiresIn: "1d",
     });
     req.user = decoded;
