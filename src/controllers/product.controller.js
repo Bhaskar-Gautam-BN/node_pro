@@ -14,14 +14,22 @@ import cloudinary from "../services/cloudinary.js";
 //   } catch (error) {
 //     console.log(error);
 //     return error;
-//   } 
+//   }
 // };
 const productUploadToCloudinary = async (fileBuffer) => {
   try {
     const result = await new Promise((resolve, reject) => {
       cloudinary.v2.uploader
         .upload_stream(
-          { folder: "products", resource_type: "auto" },
+          {
+            folder: "products",
+            resource_type: "auto",
+            quality: "auto",
+            fetch_format: "auto",
+            transformation: [
+              { width: 800, crop: "scale" }, // Example: Resize to a width of 800px
+            ],
+          },
           (error, result) => {
             if (error) reject(error);
             else resolve(result.secure_url);
@@ -39,28 +47,22 @@ const productUploadToCloudinary = async (fileBuffer) => {
 const productAddController = async (req, resp) => {
   const user_id = req.params.id;
   const { name, price, description, productCategory } = req.body;
-      const user_found = await user.findById(user_id);
-      if (!user_found)
-        return res.status(404).json({ message: "User not found" });
+  const user_found = await user.findById({ _id: user_id });
+  if (!user_found) return resp.status(404).json({ message: "User not found" });
 
-      let productSingleImageUrl = "";
-      if (
-        req.files.productSingleImage &&
-        req.files.productSingleImage.length > 0
-      ) {
-        const singleImageBuffer = req.files.productSingleImage[0].buffer;
-        productSingleImageUrl = await productUploadToCloudinary(
-          singleImageBuffer
-        );
-      }
+  let productSingleImageUrl = "";
+  if (req.files.productSingleImage && req.files.productSingleImage.length > 0) {
+    const singleImageBuffer = req.files.productSingleImage[0].buffer;
+    productSingleImageUrl = await productUploadToCloudinary(singleImageBuffer);
+  }
 
-      const productImagesUrls = [];
-      if (req.files.productImages && req.files.productImages.length > 0) {
-        const uploadPromises = req.files.productImages.map((file) =>
-          productUploadToCloudinary(file.buffer)
-        );
-        productImagesUrls.push(...(await Promise.all(uploadPromises)));
-      }
+  const productImagesUrls = [];
+  if (req.files.productImages && req.files.productImages.length > 0) {
+    const uploadPromises = req.files.productImages.map((file) =>
+      productUploadToCloudinary(file.buffer)
+    );
+    productImagesUrls.push(...(await Promise.all(uploadPromises)));
+  }
   const newProduct = new product({
     name,
     price,
@@ -78,14 +80,26 @@ const productAddController = async (req, resp) => {
   }
 };
 const getAllProducts = async (req, resp) => {
-  const products = await product.find().populate("addedById", "-password");
-
-  // const products = await user.find({_id:req.params.id}).populate('addedById');
+  const id = req.params.id;
+  let products = await product.find().populate("addedById", "-password");
+  products = products.filter((prod) => prod.isDeleted !== true);
+  const user_exist = await user.find({ _id: id });
+  if (!user_exist) return resp.status(404).json({ message: "User not found" });
   //  const allProduct = await product.find();
-  resp.status(200).json({ data: products, message: "ok" });
+  if(user_exist) resp.status(200).json([{ data: products, message: "ok" }]);
 };
-
-export { productAddController, getAllProducts };
+const deleteProduct = async (req, resp) => {
+    const whoDeleted = req.query.idDeleted;
+  const id = req.params.id;
+  const deleted = await product.findByIdAndUpdate(
+    { _id: id },
+    { isDeleted: true ,whoIsDeleted :whoDeleted ?whoDeleted:"no id there"}
+  );
+  if(!deleted) return resp.status(404).send({message:"there is no such a product of not find "})
+  console.log(deleted);
+  return resp.status(200).json({ message: "Product deleted successfully",userDetailsWhoseDelete :"node looking for who is deleted this FK things"});
+};
+export { productAddController, getAllProducts, deleteProduct, };
 
 // import { product } from "../models/product.model.js";
 
