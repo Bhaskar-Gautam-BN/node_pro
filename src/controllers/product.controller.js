@@ -1,46 +1,66 @@
 import { product } from "../models/product.model.js";
 import { user } from "../models/users.model.js";
 import cloudinary from "../services/cloudinary.js";
-import fs from "fs";
+// import fs from "fs";
 
-const productUploadToCloudinary = async (filePath) => {
+// const productUploadToCloudinary = async (filePath) => {
+//   try {
+//     console.log(filePath, "controller File Path");
+//     const uploadResult = await cloudinary.uploader.upload(filePath, {
+//       folder: "products",
+//       resource_type: "auto",
+//     });
+//     return uploadResult.secure_url;
+//   } catch (error) {
+//     console.log(error);
+//     return error;
+//   } 
+// };
+const productUploadToCloudinary = async (fileBuffer) => {
   try {
-    console.log(filePath, "controller File Path");
-    const uploadResult = await cloudinary.uploader.upload(filePath, {
-      folder: "products",
-      resource_type: "auto",
+    const result = await new Promise((resolve, reject) => {
+      cloudinary.v2.uploader
+        .upload_stream(
+          { folder: "products", resource_type: "auto" },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result.secure_url);
+          }
+        )
+        .end(fileBuffer);
     });
-    return uploadResult.secure_url;
+    return result;
   } catch (error) {
     console.log(error);
-    return error;
-  } finally {
-    // Ensure the file exists before trying to delete it
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
+    throw error;
   }
 };
 
 const productAddController = async (req, resp) => {
   const user_id = req.params.id;
   const { name, price, description, productCategory } = req.body;
-  const user_found = await user.findById({ _id: user_id });
-  console.log(user_found);
-  if (!user_found) return resp.status(404).send({ message: "user not found" });
-  let productSingleImageUrl = "";
-  if (req.files.productSingleImage) {
-    const singleImagePath = req.files.productSingleImage[0].path;
-    productSingleImageUrl = await productUploadToCloudinary(singleImagePath);
-  }
-  const productImagesUrls = [];
-  if (req.files.productImages) {
-    for (const file of req.files.productImages) {
-      const imagePath = file.path;
-      const imageUrl = await productUploadToCloudinary(imagePath);
-      productImagesUrls.push(imageUrl);
-    }
-  }
+      const user_found = await user.findById(user_id);
+      if (!user_found)
+        return res.status(404).json({ message: "User not found" });
+
+      let productSingleImageUrl = "";
+      if (
+        req.files.productSingleImage &&
+        req.files.productSingleImage.length > 0
+      ) {
+        const singleImageBuffer = req.files.productSingleImage[0].buffer;
+        productSingleImageUrl = await productUploadToCloudinary(
+          singleImageBuffer
+        );
+      }
+
+      const productImagesUrls = [];
+      if (req.files.productImages && req.files.productImages.length > 0) {
+        const uploadPromises = req.files.productImages.map((file) =>
+          productUploadToCloudinary(file.buffer)
+        );
+        productImagesUrls.push(...(await Promise.all(uploadPromises)));
+      }
   const newProduct = new product({
     name,
     price,
