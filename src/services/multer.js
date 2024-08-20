@@ -1,15 +1,15 @@
 import multer from "multer";
 import fs from "fs";
 import path from "path";
-import {fileURLToPath} from 'url'
+import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 
 // Get the directory name
 const __dirname = path.dirname(__filename);
-console.log(__dirname)
+
 // Ensure the directory exists
-const uploadDir = path.join(__dirname, "../");
-console.log
+const uploadDir = path.join(__dirname, "../uploads");
+console.log(uploadDir, "File Path .../");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }

@@ -1,5 +1,5 @@
 import express from "express";
-import { productAddController } from "../controllers/product.controller.js";
+import { getAllProducts, productAddController } from "../controllers/product.controller.js";
 import { uploadFile } from "../services/multer.js";
 const Router = express.Router();
 
@@ -11,5 +11,6 @@ const productAddRouter = Router.post(
   ]),
   productAddController
 );
+const getAllproductRouter = Router.get("/get-all-product/:id", getAllProducts);
 
-export { productAddRouter };
+export { productAddRouter, getAllproductRouter };

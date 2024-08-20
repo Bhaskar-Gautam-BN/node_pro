@@ -1,12 +1,11 @@
 import { product } from "../models/product.model.js";
 import { user } from "../models/users.model.js";
 import cloudinary from "../services/cloudinary.js";
-
 import fs from "fs";
 
 const productUploadToCloudinary = async (filePath) => {
   try {
-    // console.log(filePath);
+    console.log(filePath, "controller File Path");
     const uploadResult = await cloudinary.uploader.upload(filePath, {
       folder: "products",
       resource_type: "auto",
@@ -23,18 +22,17 @@ const productUploadToCloudinary = async (filePath) => {
   }
 };
 
-export const productAddController = async (req, resp) => {
+const productAddController = async (req, resp) => {
   const user_id = req.params.id;
   const { name, price, description, productCategory } = req.body;
-  const user_found = await user.find({ _id: user_id }).populate();
+  const user_found = await user.findById({ _id: user_id });
+  console.log(user_found);
   if (!user_found) return resp.status(404).send({ message: "user not found" });
-
   let productSingleImageUrl = "";
   if (req.files.productSingleImage) {
     const singleImagePath = req.files.productSingleImage[0].path;
     productSingleImageUrl = await productUploadToCloudinary(singleImagePath);
   }
-
   const productImagesUrls = [];
   if (req.files.productImages) {
     for (const file of req.files.productImages) {
@@ -43,7 +41,6 @@ export const productAddController = async (req, resp) => {
       productImagesUrls.push(imageUrl);
     }
   }
-
   const newProduct = new product({
     name,
     price,
@@ -51,9 +48,8 @@ export const productAddController = async (req, resp) => {
     productSingleImage: productSingleImageUrl,
     productImages: productImagesUrls,
     productCategory,
-
+    addedById: user_found._id,
   });
-
   try {
     const savedProduct = await newProduct.save();
     resp.status(201).json(savedProduct);
@@ -61,6 +57,15 @@ export const productAddController = async (req, resp) => {
     resp.status(500).json({ error: "Failed to add product" });
   }
 };
+const getAllProducts = async (req, resp) => {
+  const products = await product.find().populate("addedById", "-password");
+
+  // const products = await user.find({_id:req.params.id}).populate('addedById');
+  //  const allProduct = await product.find();
+  resp.status(200).json({ data: products, message: "ok" });
+};
+
+export { productAddController, getAllProducts };
 
 // import { product } from "../models/product.model.js";
 

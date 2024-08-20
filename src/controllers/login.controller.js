@@ -7,13 +7,12 @@ export const loginUser = async (req, res) => {
 
   // Find the user by email
   const userData = await user.findOne({ email });
-  console.log(password);
   console.log(userData.password);
   if (!userData) {
     return res.status(401).json({ message: "Invalid email or password" });
   }
   if (password !== userData.password) {
-    return res.status(401).json({ message: "Invalid  password" });
+    return res.status(401).json({ message: "Invalid password" });
   }
   // Generate JWT token
   const token = jwt.sign(
