@@ -81,25 +81,32 @@ const productAddController = async (req, resp) => {
 };
 const getAllProducts = async (req, resp) => {
   const id = req.params.id;
-  let products = await product.find().populate("addedById", "-password");
+  if (!id) resp.status(404).send("user id not found !!!! ");
+  let products = await product?.find()?.populate("addedById", "-password");
   products = products.filter((prod) => prod.isDeleted !== true);
-  const user_exist = await user.find({ _id: id });
+  const user_exist = await user?.find({ _id: id });
   if (!user_exist) return resp.status(404).json({ message: "User not found" });
   //  const allProduct = await product.find();
-  if(user_exist) resp.status(200).json([{ data: products, message: "ok" }]);
+  if (user_exist) resp.status(200).json([{ data: products, message: "ok" }]);
 };
 const deleteProduct = async (req, resp) => {
-    const whoDeleted = req.query.idDeleted;
+  const whoDeleted = req.query.idDeleted;
   const id = req.params.id;
   const deleted = await product.findByIdAndUpdate(
     { _id: id },
-    { isDeleted: true ,whoIsDeleted :whoDeleted ?whoDeleted:"no id there"}
+    { isDeleted: true, whoIsDeleted: whoDeleted ? whoDeleted : "no id there" }
   );
-  if(!deleted) return resp.status(404).send({message:"there is no such a product of not find "})
+  if (!deleted)
+    return resp
+      .status(404)
+      .send({ message: "there is no such a product of not find " });
   console.log(deleted);
-  return resp.status(200).json({ message: "Product deleted successfully",userDetailsWhoseDelete :"node looking for who is deleted this FK things"});
+  return resp.status(200).json({
+    message: "Product deleted successfully",
+    userDetailsWhoseDelete: "node looking for who is deleted this FK things",
+  });
 };
-export { productAddController, getAllProducts, deleteProduct, };
+export { productAddController, getAllProducts, deleteProduct };
 
 // import { product } from "../models/product.model.js";
 
