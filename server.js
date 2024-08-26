@@ -21,10 +21,10 @@ import Chat from "./src/models/chat.model.js";
 const port = process.env.PORT || 5000;
 const app = express();
 const server = http.createServer(app);
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const __dirname = join(dirname(fileURLToPath(import.meta.url)), "/index.html");
 console.log(__dirname);
 app.get("/", (req, res) => {
-  res.sendFile(join(__dirname, "/index.html"));
+  res.sendFile(__dirname);
 });
 
 const io = new Server(server, {
@@ -34,14 +34,15 @@ const io = new Server(server, {
   },
 });
 
+
 io.on("connection", (socket) => {
-  console.log(`User connected: ${socket.id}`);
+  console.log(`User connected: ${socket.id} ---->`);
 
   // Join a private room for one-on-one chat
   socket.on("join room", ({ senderId, recipientId }) => {
     const room = [senderId, recipientId].sort().join("-");
     socket.join(room);
-    console.log(`User ${senderId} joined room: ${room}`);
+    console.log(`User ${senderId}  -------- joined room: ${room}`);
   });
 
   // Send a message to the specific room
@@ -86,9 +87,7 @@ io.on("connection", (socket) => {
 //     console.log("socket disconnected");
 //   })
 // });
-
 app.use(cors());
-
 app.use(cookieParser());
 app.use(express.json());
 connectToDb();
@@ -106,3 +105,4 @@ app.use("/api/v1", deleteOneProduct);
 server.listen(port, () => {
   console.log(`server is running on port ${port}`);
 });
+
