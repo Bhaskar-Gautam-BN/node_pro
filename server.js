@@ -7,8 +7,8 @@ import {
 } from "./src/routes/user.route.js";
 import http from "http";
 import { Server } from "socket.io";
-import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
 import cors from "cors";
 // import { jwtVerifyToken } from "./src/middlewares/authJwt.js";
 import cookieParser from "cookie-parser";
@@ -18,6 +18,11 @@ import {
   productAddRouter,
 } from "./src/routes/product.route.js";
 import Chat from "./src/models/chat.model.js";
+import { authToken } from "./src/middlewares/authJwt.js";
+import {
+  protectedRouteWithAuth,
+  userSignIn,
+} from "./src/controllers/signIn.controller.js";
 const port = process.env.PORT || 5000;
 const app = express();
 const server = http.createServer(app);
@@ -29,11 +34,10 @@ app.get("/", (req, res) => {
 
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: "/api/*",
     methods: ["GET", "POST"],
   },
 });
-
 
 io.on("connection", (socket) => {
   console.log(`User connected: ${socket.id} ---->`);
@@ -56,7 +60,7 @@ io.on("connection", (socket) => {
 
   //   chatMessage.save().then(() => {
   //     io.to(room).emit("chat message", chatMessage);
-     
+
   //   });
   //    socket.on("chat message", (msg) => {
   //   console.log(msg);
@@ -77,7 +81,6 @@ io.on("connection", (socket) => {
   });
 });
 
-
 // io.use("connection", (socket) => {
 //   console.log("socket connected");
 //   socket.on("sendMessage", (message) => {
@@ -91,12 +94,16 @@ app.use(cors());
 app.use(cookieParser());
 app.use(express.json());
 connectToDb();
+
+// const appRouter =app.use()
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1", homeRouter);
 app.use("/api/v1", loginRouter);
 app.use("/api/v1", productAddRouter);
 app.use("/api/v1", getAllproductRouter);
 app.use("/api/v1", deleteOneProduct);
+app.get("/get-user", authToken, protectedRouteWithAuth);
+app.post("/login", userSignIn);
 
 // app.get("/", (req, res) => {
 //   res.send("<h1>hello welcome </h1>");
@@ -105,4 +112,3 @@ app.use("/api/v1", deleteOneProduct);
 server.listen(port, () => {
   console.log(`server is running on port ${port}`);
 });
-

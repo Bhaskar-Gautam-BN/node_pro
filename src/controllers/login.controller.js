@@ -17,8 +17,8 @@ export const loginUser = async (req, res) => {
   // Generate JWT token
   const token = jwt.sign(
     { id: userData._id, email: userData.email, role: userData.role },
-    "your-secret-key", // Secret key
-    { expiresIn: "1h" } // Token expiration time
+    process.env.ACCESS_TOKEN_SECRET, // Secret key
+    { expiresIn: process.env.ACCESS_TOKEN_EXPIRY } // Token expiration time
   );
 
   // Set the token as an HTTP-only cookie

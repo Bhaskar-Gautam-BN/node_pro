@@ -19,8 +19,8 @@ export const addNewUser = async (req, res) => {
 
   const token = jwt.sign(
     { id: newUser._id, email: newUser.email, role: newUser.role },
-    "your-secret-key", // Secret key
-    { expiresIn: "1h" } // Token expiration time
+    process.env.ACCESS_TOKEN_SECRET, // Secret key
+    { expiresIn: process.env.ACCESS_TOKEN_EXPIRY } // Token expiration time
   );
 
   return res
@@ -36,6 +36,6 @@ export const addNewUser = async (req, res) => {
 
 export const getAllUserData = async (req, resp) => {
   console.log(req.user.id);
-  const users = await user.find().populate("role");
+  const users = await user.find().populate("role").select("-password");
   return resp.status(200).json(users);
 };
